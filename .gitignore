@@ -1,0 +1,16 @@
+# Commons
+/.git
+.DS_Store
+
+# IDE
+/.idea
+/.run
+/.vscode
+
+# ENV
+/venv
+.env
+
+# Binary
+*.so
+*.dll

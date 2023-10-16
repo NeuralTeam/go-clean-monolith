@@ -1,11 +1,13 @@
 package v1
 
 import (
+	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+	"go-clean-monolith/internal/service"
 	. "go-clean-monolith/pkg/httpserver"
 	"go-clean-monolith/pkg/logger"
-	"go-clean-monolith/service"
-	"strconv"
 )
 
 var _ IUsersController = &UsersController{}
@@ -45,8 +47,24 @@ func (c *UsersController) LoginInAccount(ctx *gin.Context) Response {
 
 // GetProfile description
 func (c *UsersController) GetProfile(ctx *gin.Context) Response {
-	a, _ := ctx.GetQuery("q")
-	b, _ := strconv.Atoi(a)
+	type requestQuery struct {
+		Q int `form:"q" binding:"required"`
+	}
 
-	return SuccessJSON(200, gin.H{"username": 5 / b})
+	var request requestQuery
+	if err := ctx.ShouldBindQuery(&request); err != nil {
+		var (
+			details []*ValidationErrDetail
+			vErrs   validator.ValidationErrors
+		)
+		if errors.As(err, &vErrs) {
+			details = ValidationErrorDetails(&request, "form", vErrs)
+		}
+		for _, detail := range details {
+			fmt.Println(detail.Message, detail.Value, detail.Field)
+		}
+		return Error(400, 5)
+	}
+
+	return SuccessJSON(200, gin.H{"username": 5 / (request.Q - 5)})
 }

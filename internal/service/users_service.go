@@ -2,8 +2,8 @@ package service
 
 import (
 	"go-clean-monolith/entity"
+	"go-clean-monolith/internal/repository"
 	"go-clean-monolith/pkg/logger"
-	"go-clean-monolith/repository"
 	"gorm.io/gorm"
 )
 

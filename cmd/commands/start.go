@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"go-clean-monolith/config"
-	"go-clean-monolith/controller/middleware"
-	v1 "go-clean-monolith/controller/v1"
+	"go-clean-monolith/internal/controller/middleware"
+	"go-clean-monolith/internal/controller/v1"
 	"go-clean-monolith/pkg/cli"
 	"go-clean-monolith/pkg/httpserver"
 	"go-clean-monolith/pkg/logger"
@@ -15,8 +15,12 @@ import (
 	"syscall"
 )
 
-// StartCommand launch web application
 type StartCommand struct{}
+
+// NewStartCommand launch web application
+func NewStartCommand() StartCommand {
+	return StartCommand{}
+}
 
 func (s StartCommand) Setup(cmd *cli.Command) {}
 
@@ -28,17 +32,27 @@ func (s StartCommand) Run() ICommandRunner {
 		env config.Env,
 		logger logger.Logger,
 	) {
-		httpServer.Use(middleware.Logger.Setup(), middleware.CORS.Setup(), middleware.Recovery.Setup())
+		httpServer.EngineUse(middleware.Logger.Setup(), middleware.CORS.Setup(), middleware.Recovery.Setup())
 		routerV1.Setup()
 
 		srv := &http.Server{
 			Addr:    fmt.Sprintf("%s:%d", env.ServerHost, env.ServerPort),
-			Handler: httpServer,
+			Handler: httpServer.Handler(),
+		}
+
+		logger.Info().
+			IPAddr("ip", env.ServerHost).
+			Int("port", env.ServerPort).
+			Str("environment", env.Environment).
+			Str("version", env.Version).
+			Msg("Overview:")
+		for _, handler := range httpServer.Routes() {
+			logger.Debug().Str("method", handler.Method).Str("path", handler.Path).Msg("Create handler:")
 		}
 
 		go func() {
 			if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-				logger.Printf("Server listen: %s\n", err)
+				logger.Fatal().Msgf("Server listen: %s", err)
 			}
 		}()
 
@@ -46,8 +60,4 @@ func (s StartCommand) Run() ICommandRunner {
 		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 		<-quit
 	}
-}
-
-func NewStartCommand() StartCommand {
-	return StartCommand{}
 }

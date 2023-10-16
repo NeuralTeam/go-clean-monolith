@@ -3,13 +3,13 @@ package config
 import (
 	"fmt"
 	"go-clean-monolith/pkg/dotenv"
-	"go.uber.org/fx"
 	"log"
 	"net"
 )
 
 // Env has environment stored
 type Env struct {
+	Version     string `json:"VERSION"`
 	Environment string `json:"ENVIRONMENT"`
 	ServerHost  net.IP `json:"SERVER_HOST"`
 	ServerPort  int    `json:"SERVER_PORT"`
@@ -34,8 +34,3 @@ func New() (env Env) {
 	}
 	return env
 }
-
-// DependencyModules exports dependency for initializing application
-var DependencyModules = fx.Options(
-	fx.Provide(New),
-)

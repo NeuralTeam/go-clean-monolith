@@ -163,7 +163,7 @@ type Logger struct {
 	Gorm GormLogger
 }
 
-func NewLogger(env config.Env) Logger {
+func New(env config.Env) Logger {
 	return Logger{
 		newLogger(env.LogMode, env.LogFileName),
 		newGormLogger(),

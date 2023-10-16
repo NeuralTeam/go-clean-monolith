@@ -1,5 +1,6 @@
 # Commons
 /.git
+/.next
 .DS_Store
 
 # IDE
@@ -8,6 +9,7 @@
 /.vscode
 
 # ENV
+/node_modules
 /venv
 .env
 

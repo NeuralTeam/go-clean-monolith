@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"go-clean-monolith/controller/middleware"
-	v1 "go-clean-monolith/controller/v1"
+	"go-clean-monolith/internal/controller/middleware"
+	"go-clean-monolith/internal/controller/v1"
 	"go.uber.org/fx"
 )
 

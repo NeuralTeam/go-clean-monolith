@@ -1,13 +1,13 @@
 package v1
 
 import (
-	"go-clean-monolith/controller/middleware"
+	"go-clean-monolith/internal/controller/middleware"
 	"go-clean-monolith/pkg/httpserver"
 )
 
 //----------------------------------------------------------------------------------------------------------------------
 
-// Router struct
+// Router description
 type Router struct {
 	httpServer      httpserver.HttpServer
 	middlewares     middleware.Middleware
@@ -35,9 +35,9 @@ func (r Router) Setup() {
 
 	users := api.Group("/users")
 	{
-		users.POST("/register", httpserver.HandlerWrapper(r.usersController.RegisterAnAccount))
-		users.POST("/login", httpserver.HandlerWrapper(r.usersController.LoginInAccount))
-		users.GET("/profile", httpserver.HandlerWrapper(r.usersController.GetProfile))
+		users.POST("/register", r.usersController.RegisterAnAccount)
+		users.POST("/login", r.usersController.LoginInAccount)
+		users.GET("/profile", r.usersController.GetProfile)
 	}
 }
 

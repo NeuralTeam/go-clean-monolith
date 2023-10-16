@@ -2,7 +2,7 @@ package repository
 
 import (
 	"go-clean-monolith/entity"
-	"go-clean-monolith/gateway"
+	"go-clean-monolith/internal/gateway"
 	"go-clean-monolith/pkg/logger"
 	"gorm.io/gorm"
 )

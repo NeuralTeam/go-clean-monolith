@@ -9,7 +9,7 @@ import (
 
 // Env has environment stored
 type Env struct {
-	Version     string `json:"VERSION"`
+	Version     string `json:"VERSION" dotenv:"default:1.0.0,required,notnull"`
 	Environment string `json:"ENVIRONMENT"`
 	ServerHost  net.IP `json:"SERVER_HOST"`
 	ServerPort  int    `json:"SERVER_PORT"`
@@ -28,7 +28,7 @@ type Env struct {
 
 // New creates a new environment
 func New() (env Env) {
-	err := dotenv.LoadInStruct(&env, ".env")
+	err := dotenv.LoadInStruct(&env)
 	if err != nil {
 		log.Fatalln(fmt.Sprintf("can not read configuration file. error: %s", err))
 	}

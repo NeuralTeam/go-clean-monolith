@@ -33,7 +33,7 @@ func (m LoggerMiddleware) Setup() gin.HandlerFunc {
 		StatusCode int
 		Method     string
 		Path       string
-		Latency    time.Duration
+		EndTime    int64
 		ClientIP   string
 		BodySize   int
 		UserID     int64
@@ -44,7 +44,7 @@ func (m LoggerMiddleware) Setup() gin.HandlerFunc {
 		requestId := uuid.NewString()
 
 		// Start timer
-		start := time.Now()
+		start := time.Now().UnixNano()
 		path := ctx.Request.URL.Path
 		raw := ctx.Request.URL.RawQuery
 
@@ -60,7 +60,7 @@ func (m LoggerMiddleware) Setup() gin.HandlerFunc {
 
 		// Stop timer
 		params.TimeStamp = time.Now()
-		params.Latency = params.TimeStamp.Sub(start)
+		params.EndTime = params.TimeStamp.UnixNano() - start
 
 		params.StatusCode = ctx.Writer.Status()
 		params.Method = ctx.Request.Method
@@ -87,7 +87,7 @@ func (m LoggerMiddleware) Setup() gin.HandlerFunc {
 				Int("status", params.StatusCode).
 				Str("method", params.Method).
 				Str("path", params.Path).
-				Dur("latency", params.Latency).
+				Int64("end_time", params.EndTime).
 				Int("size", params.BodySize).
 				Str("addr", params.ClientIP).
 				Int64("user_id", params.UserID).
@@ -99,7 +99,7 @@ func (m LoggerMiddleware) Setup() gin.HandlerFunc {
 				Int("status", params.StatusCode).
 				Str("method", params.Method).
 				Str("path", params.Path).
-				Dur("latency", params.Latency).
+				Int64("end_time", params.EndTime).
 				Int("size", params.BodySize).
 				Str("addr", params.ClientIP).
 				Int64("user_id", params.UserID).

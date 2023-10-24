@@ -37,7 +37,7 @@ func (r Router) Setup() {
 	{
 		users.POST("/register", r.usersController.RegisterAnAccount)
 		users.POST("/login", r.usersController.LoginInAccount)
-		users.GET("/profile", r.usersController.GetProfile)
+		users.POST("/profile", r.usersController.GetProfile)
 	}
 }
 

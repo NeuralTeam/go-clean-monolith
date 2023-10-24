@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,6 +20,7 @@ type (
 func New() HttpServer {
 	gin.SetMode(gin.ReleaseMode)
 	e := gin.New()
+	pprof.Register(e)
 	return HttpServer{
 		engine: e,
 		router: &e.RouterGroup,

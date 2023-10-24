@@ -45,13 +45,14 @@ func (c *UsersController) LoginInAccount(ctx *gin.Context) Response {
 // GetProfile description
 func (c *UsersController) GetProfile(ctx *gin.Context) Response {
 	type requestQuery struct {
-		Q string `query:"q" binding:"default:neuralteam,min:10,max:12,required"`
+		Name string `json:"name" binding:"required"`
+		Age  int8   `json:"age" binding:"required"`
 	}
 
 	var request requestQuery
-	if err := BindQuery(ctx, &request); err != nil {
+	if err := BindJSON(ctx, &request); err != nil {
 		return SuccessJSON(400, gin.H{"error": err.Error()})
 	}
 
-	return SuccessJSON(200, gin.H{"username": request.Q})
+	return SuccessJSON(200, gin.H{"name": request.Name, "age": request.Age})
 }

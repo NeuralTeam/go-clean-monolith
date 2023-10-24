@@ -1,9 +1,11 @@
+// Package httpserver: validator in progress...
 package httpserver
 
 import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/valyala/fastjson"
 	"math"
 	"reflect"
 	"strconv"
@@ -11,37 +13,30 @@ import (
 	"unsafe"
 )
 
-//			switch err.ActualTag() {
-//			case "required":
-//				message = fmt.Sprintf("required tag='%s'", tagName)
-//			case "min":
-//				message = fmt.Sprintf("%s required at least %s length", tagName, err.Param())
-//			case "max":
-//				message = fmt.Sprintf("%s required at no longer %s length", tagName, err.Param())
-//			case "len":
-//				message = fmt.Sprintf("%s required exactly %s length", tagName, err.Param())
-//			case "uuid4":
-//				message = fmt.Sprintf("%s type must be uuid", tagName)
-//			default:
-//				message = fmt.Sprintf("invalid %s", tagName)
-//			}
-
-func s2b(s string) []byte {
-	return unsafe.Slice(unsafe.StringData(s), len(s))
+func b2s(b []byte) string {
+	return *(*string)(unsafe.Pointer(&b))
 }
 
-func BindQuery(c *gin.Context, obj any) error {
+func s2b(s string) (b []byte) {
+	strh := (*reflect.StringHeader)(unsafe.Pointer(&s))
+	sh := (*reflect.SliceHeader)(unsafe.Pointer(&b))
+	sh.Data = strh.Data
+	sh.Len = strh.Len
+	sh.Cap = strh.Len
+	return b
+}
+
+func validate(tagName string, obj any, f func(key string) (string, bool)) error {
 	elType := reflect.TypeOf(obj).Elem()
 	elValue := reflect.ValueOf(obj).Elem()
 
 	for i := 0; i < elType.NumField(); i++ {
-		tag := "query"
 		fieldType := elType.Field(i)
 		fieldValue := elValue.Field(i)
 
-		tagName := fieldType.Tag.Get(tag)
+		tagValue := fieldType.Tag.Get(tagName)
 		bindOpts := strings.Split(fieldType.Tag.Get("binding"), ",")
-		_queryData, ok := c.GetQuery(tagName)
+		data, exist := f(tagValue)
 
 		// TODO: настроить `default`
 		// TODO: добавить значения для `bool`
@@ -50,44 +45,50 @@ func BindQuery(c *gin.Context, obj any) error {
 			opt := strings.Split(bindOpt, ":")
 			switch opt[0] {
 			case "default":
-				if !ok && len(_queryData) == 0 {
-					_queryData = opt[1]
-					ok = true
+				if !exist && len(data) == 0 {
+					data = opt[1]
+					exist = true
 				}
 			case "required":
-				if !ok {
-					return errors.New(fmt.Sprintf("%s='%s' must be required", tag, tagName))
+				if !exist {
+					return errors.New(fmt.Sprintf("%s='%s' must be required", tagName, tagValue))
 				}
 			case "len":
 				// TODO: и так сойдёт
 				n, _ := strconv.ParseInt(opt[1], 10, 32)
-				if len(_queryData) != int(n) {
-					return errors.New(fmt.Sprintf("%s='%s' required exactly %d length", tag, tagName, n))
+				if len(data) != int(n) {
+					return errors.New(fmt.Sprintf("%s='%s' required exactly %d length", tagName, tagValue, n))
 				}
 			case "min":
 				n, _ := strconv.ParseInt(opt[1], 10, 32)
-				if len(_queryData) <= int(n) {
-					return errors.New(fmt.Sprintf("%s='%s' required at least %d length", tag, tagName, n))
+				if len(data) <= int(n) {
+					return errors.New(fmt.Sprintf("%s='%s' required at least %d length", tagName, tagValue, n))
 				}
 			case "max":
 				n, _ := strconv.ParseInt(opt[1], 10, 32)
-				if len(_queryData) >= int(n) {
-					return errors.New(fmt.Sprintf("%s='%s' required at no longer %d length", tag, tagName, n))
+				if len(data) >= int(n) {
+					return errors.New(fmt.Sprintf("%s='%s' required at no longer %d length", tagName, tagValue, n))
 				}
+			//case "gt":
+			//	n, _ := strconv.ParseInt(opt[1], 10, 32)
+			//	if data > int(n) {
+			//		return errors.New(fmt.Sprintf("%s='%s'", tagName, tagValue))
+			//	}
 			case "uuid":
-				return errors.New(fmt.Sprintf("%s='%s' type must be uuid", tag, tagName))
+				return errors.New(fmt.Sprintf("%s='%s' type must be uuid", tagName, tagValue))
 			default:
-				return errors.New(fmt.Sprintf("invalid %s", tagName))
+				return errors.New(fmt.Sprintf("invalid %s", tagValue))
 			}
 		}
-		queryData := s2b(_queryData)
+
+		queryData := s2b(data)
 
 		switch fieldValue.Interface().(type) {
 		case string:
-			fieldValue.Set(reflect.ValueOf(_queryData))
+			fieldValue.Set(reflect.ValueOf(data))
 		case bool:
 			n := false
-			if _queryData == "true" {
+			if data == "true" {
 				n = true
 			}
 			fieldValue.Set(reflect.ValueOf(n))
@@ -358,4 +359,38 @@ func BindQuery(c *gin.Context, obj any) error {
 	}
 
 	return nil
+}
+
+func BindQuery(c *gin.Context, obj any) error {
+	return validate("query", obj, c.GetQuery)
+}
+
+func BindHeader(c *gin.Context, obj any) error {
+	return validate("header", obj, func(key string) (string, bool) {
+		val := c.GetHeader(key)
+		if len(val) == 0 {
+			return val, false
+		}
+		return val, true
+	})
+}
+
+func BindJSON(c *gin.Context, obj any) error {
+	return validate("json", obj, func(key string) (string, bool) {
+		a, err := c.GetRawData()
+		if err != nil {
+			return "", false
+		}
+		var p fastjson.Parser
+		if len(a) == 0 {
+			return "", false
+		}
+		v, err := p.Parse(string(a))
+		if err != nil {
+			return "", false
+		}
+		s := v.Get(key).MarshalTo(nil)
+		s = s[1 : len(s)-1]
+		return b2s(s), true
+	})
 }

@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 )
 
-func StructureValidation() {
+func LayersValidation() {
 	getWd, err := os.Getwd()
 	if err != nil {
 		log.Fatalln(err)

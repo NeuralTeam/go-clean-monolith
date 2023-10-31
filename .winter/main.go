@@ -6,4 +6,6 @@ import (
 
 func main() {
 	validator.StructureValidation()
+	validator.LayersValidation()
+	validator.EndpointsValidation()
 }

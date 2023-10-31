@@ -2,6 +2,8 @@ package v1
 
 import (
 	"github.com/gin-gonic/gin"
+	requests "go-clean-monolith/dto/requests"
+	responses "go-clean-monolith/dto/responses"
 	"go-clean-monolith/internal/service"
 	. "go-clean-monolith/pkg/httpserver"
 	"go-clean-monolith/pkg/logger"
@@ -44,15 +46,10 @@ func (c *UsersController) LoginInAccount(ctx *gin.Context) Response {
 
 // GetProfile description
 func (c *UsersController) GetProfile(ctx *gin.Context) Response {
-	type requestQuery struct {
-		Name string `json:"name" binding:"required"`
-		Age  int8   `json:"age" binding:"required"`
-	}
-
-	var request requestQuery
+	var request requests.UsersQueryRequest
 	if err := BindJSON(ctx, &request); err != nil {
 		return SuccessJSON(400, gin.H{"error": err.Error()})
 	}
 
-	return SuccessJSON(200, gin.H{"name": request.Name, "age": request.Age})
+	return SuccessJSON(200, responses.UsersProfileResponse{Name: request.Name, Age: request.Age})
 }

@@ -1,38 +1,20 @@
 package service
 
 import (
-	"go-clean-monolith/entity"
+	"go-clean-monolith/internal/entity"
 	"go-clean-monolith/internal/repository"
 	"go-clean-monolith/pkg/logger"
 	"gorm.io/gorm"
 )
 
-var _ IUsersService = &UsersService{}
-
-type (
-	// UsersService description
-	UsersService struct {
-		repository repository.IUsersRepository
-		logger     logger.Logger
-	}
-
-	// IUsersService description
-	IUsersService interface {
-		WithTrx(trxHandle *gorm.DB) IUsersService
-		CreateUser(user entity.Users) (err error)
-	}
-)
-
-// NewUsersService description
-func NewUsersService(repository repository.IUsersRepository, logger logger.Logger) IUsersService {
-	return &UsersService{
-		logger:     logger,
-		repository: repository,
-	}
+// UsersService description
+type UsersService struct {
+	repository *repository.UsersRepository
+	logger     logger.Logger
 }
 
 // WithTrx description
-func (s *UsersService) WithTrx(trxHandle *gorm.DB) IUsersService {
+func (s *UsersService) WithTrx(trxHandle *gorm.DB) *UsersService {
 	s.repository = s.repository.WithTrx(trxHandle)
 	return s
 }

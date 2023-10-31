@@ -1,41 +1,20 @@
 package repository
 
 import (
-	"go-clean-monolith/entity"
+	"go-clean-monolith/internal/entity"
 	"go-clean-monolith/internal/gateway"
 	"go-clean-monolith/pkg/logger"
 	"gorm.io/gorm"
 )
 
-var _ IUsersRepository = &UsersRepository{}
-
-type (
-	// UsersRepository description
-	UsersRepository struct {
-		db     *gateway.PostgresGateway
-		logger logger.Logger
-	}
-
-	// IUsersRepository description
-	IUsersRepository interface {
-		WithTrx(trxHandle *gorm.DB) IUsersRepository
-		CreateUser(user entity.Users) error
-		GetUser(id int64) (user entity.Users, err error)
-		UpdateUser(user entity.Users) error
-		DeleteUser(id int64) error
-	}
-)
-
-// NewUsersRepository description
-func NewUsersRepository(db *gateway.PostgresGateway, logger logger.Logger) IUsersRepository {
-	return &UsersRepository{
-		db:     db,
-		logger: logger,
-	}
+// UsersRepository description
+type UsersRepository struct {
+	db     *gateway.PostgresGateway
+	logger logger.Logger
 }
 
 // WithTrx description
-func (r *UsersRepository) WithTrx(trxHandle *gorm.DB) IUsersRepository {
+func (r *UsersRepository) WithTrx(trxHandle *gorm.DB) *UsersRepository {
 	if trxHandle == nil {
 		r.logger.Error().Msg("transaction database not found in context.")
 		return r

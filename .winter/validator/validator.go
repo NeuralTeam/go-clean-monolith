@@ -52,11 +52,21 @@ func StructureValidation() {
 				case *ast.StructType:
 					s, _ := x.(*ast.StructType)
 					for _, field := range s.Fields.List {
-						t := field.Type.(*ast.SelectorExpr)
-						layer.Args = append(layer.Args, Arg{
-							Name: field.Names[0].String(),
-							Type: t.X.(*ast.Ident).Name + "." + t.Sel.String(),
-						})
+						tt, ok := field.Type.(*ast.StarExpr)
+						if ok {
+							t := tt.X.(*ast.SelectorExpr)
+							layer.Args = append(layer.Args, Arg{
+								Name: field.Names[0].String(),
+								Type: "*" + t.X.(*ast.Ident).Name + "." + t.Sel.String(),
+							})
+						}
+						t, ok := field.Type.(*ast.SelectorExpr)
+						if ok {
+							layer.Args = append(layer.Args, Arg{
+								Name: field.Names[0].String(),
+								Type: t.X.(*ast.Ident).Name + "." + t.Sel.String(),
+							})
+						}
 					}
 				}
 				return true

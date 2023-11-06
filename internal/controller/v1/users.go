@@ -47,9 +47,8 @@ func (c *UsersController) LoginInAccount(ctx *gin.Context) Response {
 // GetProfile description
 func (c *UsersController) GetProfile(ctx *gin.Context) Response {
 	var request requests.UsersQueryRequest
-	if err := BindJSON(ctx, &request); err != nil {
+	if err := BindQuery(ctx, &request); err != nil {
 		return SuccessJSON(400, gin.H{"error": err.Error()})
 	}
-
-	return SuccessJSON(200, responses.UsersProfileResponse{Name: request.Name, Age: request.Age})
+	return SuccessJSON(200, responses.UsersProfileResponse{Name: request.Name, Age: 4 / request.Age})
 }
